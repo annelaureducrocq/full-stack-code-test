@@ -9,3 +9,4 @@ gradle
 .settings
 build/
 bin/
+poller.db
