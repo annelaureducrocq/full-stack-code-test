@@ -8,20 +8,25 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MainVerticle extends AbstractVerticle {
 
-  private HashMap<String, String> services = new HashMap<>();
+  private Map<String, String> services;
   //TODO use this
   private DBConnector connector;
+  private ServicesDao servicesDao;
   private BackgroundPoller poller = new BackgroundPoller();
 
   @Override
   public void start(Future<Void> startFuture) {
     connector = new DBConnector(vertx);
+    servicesDao = new ServicesDao(connector);
+
+    this.services = servicesDao.findAll();
+
     Router router = Router.router(vertx);
     router.route().handler(BodyHandler.create());
     services.put("https://www.kry.se", "UNKNOWN");
@@ -58,6 +63,7 @@ public class MainVerticle extends AbstractVerticle {
     router.post("/service").handler(req -> {
       JsonObject jsonBody = req.getBodyAsJson();
       services.put(jsonBody.getString("url"), "UNKNOWN");
+      servicesDao.addService(jsonBody.getString("url"));
       req.response()
           .putHeader("content-type", "text/plain")
           .end("OK");
