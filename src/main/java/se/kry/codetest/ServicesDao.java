@@ -42,4 +42,14 @@ public class ServicesDao {
                 }
         );
     }
+
+    public void removeService(String url) {
+        connector.query("delete from service where url = '"+ url +"';").setHandler(
+                done -> {
+                    if(!done.succeeded()) {
+                        done.cause().printStackTrace();
+                    }
+                }
+        );
+    }
 }

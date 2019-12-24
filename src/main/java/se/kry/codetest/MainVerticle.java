@@ -2,6 +2,7 @@ package se.kry.codetest;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -67,6 +68,16 @@ public class MainVerticle extends AbstractVerticle {
       req.response()
           .putHeader("content-type", "text/plain")
           .end("OK");
+    });
+    router.delete("/service/:url").handler(routingContext -> {
+      String url = routingContext.pathParam("url");
+      HttpServerResponse response = routingContext.response();
+      if (services.containsKey(url)) {
+        services.remove(url);
+        servicesDao.removeService(url);
+        response.setStatusCode(204).end();
+      }
+      response.setStatusCode(404).end();
     });
   }
 

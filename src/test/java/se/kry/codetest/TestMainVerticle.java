@@ -37,4 +37,23 @@ public class TestMainVerticle {
         }));
   }
 
+    @Test
+    @DisplayName("Start a web server on localhost responding to path /service with DELETE on port 8080")
+    @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
+    void start_http_server_call_delete(Vertx vertx, VertxTestContext testContext) {
+        WebClient.create(vertx)
+                .delete(8080, "::1", "/service/https://www.kry.se")
+                .send(response -> testContext.verify(() -> {
+                    assertEquals(404, response.result().statusCode());
+                    testContext.completeNow();
+                }));
+
+        WebClient.create(vertx)
+                .delete(8080, "::1", "/service/https://www.kry.se")
+                .send(response -> testContext.verify(() -> {
+                    assertEquals(204, response.result().statusCode());
+                    testContext.completeNow();
+                }));
+    }
+
 }
