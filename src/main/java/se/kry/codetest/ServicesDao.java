@@ -15,7 +15,7 @@ public class ServicesDao {
 
     public Map<String, String> findAll() {
         Map<String, String> services = new HashMap<>();
-        connector.query("select name from service;").setHandler(
+        connector.query("select url from service;").setHandler(
                 done -> {
                     if(done.succeeded()) {
                         done
@@ -24,7 +24,7 @@ public class ServicesDao {
                                 .stream()
                                 .forEach(
                                     jsonArray -> jsonArray.stream().forEach(
-                                        name -> services.put((String) name, "UNKNOWN")
+                                        url -> services.put((String) url, "UNKNOWN")
                                     )
                                 );
                     } else {
