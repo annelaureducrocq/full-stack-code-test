@@ -9,6 +9,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,7 +31,6 @@ public class MainVerticle extends AbstractVerticle {
 
     Router router = Router.router(vertx);
     router.route().handler(BodyHandler.create());
-    services.put("https://www.kry.se", "UNKNOWN");
     vertx.setPeriodic(1000 * 60, timerId -> poller.pollServices(services));
     setRoutes(router);
     vertx
@@ -63,18 +63,25 @@ public class MainVerticle extends AbstractVerticle {
     });
     router.post("/service").handler(req -> {
       JsonObject jsonBody = req.getBodyAsJson();
-      services.put(jsonBody.getString("url"), "UNKNOWN");
-      servicesDao.addService(jsonBody.getString("url"));
-      req.response()
-          .putHeader("content-type", "text/plain")
-          .end("OK");
+      Service service = new Service(jsonBody.getString("name"), jsonBody.getString("url"), Instant.now());
+      if(jsonBody.getString("name") == null || jsonBody.getString("url") == null){
+        req.response().setStatusCode(400).end("You should fill name & url attributes !");
+      } else if(services.containsKey(service.getName())) {
+        req.response().setStatusCode(400).end("Service name " + service.getName() + " already exists");
+      } else {
+        services.put(service.getName(), "UNKNOWN");
+        servicesDao.addService(service);
+        req.response()
+                .putHeader("content-type", "text/plain")
+                .end("OK");
+      }
     });
-    router.delete("/service/:url").handler(routingContext -> {
-      String url = routingContext.pathParam("url");
+    router.delete("/service/:name").handler(routingContext -> {
+      String name = routingContext.pathParam("name");
       HttpServerResponse response = routingContext.response();
-      if (services.containsKey(url)) {
-        services.remove(url);
-        servicesDao.removeService(url);
+      if (services.containsKey(name)) {
+        services.remove(name);
+        servicesDao.removeService(name);
         response.setStatusCode(204).end();
       }
       response.setStatusCode(404).end();

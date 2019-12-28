@@ -1,5 +1,7 @@
 package se.kry.codetest;
 
+import io.vertx.core.json.JsonArray;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,7 +15,7 @@ public class ServicesDao {
 
     public Map<String, String> findAll() {
         Map<String, String> services = new HashMap<>();
-        connector.query("select url from service;").setHandler(
+        connector.query("select name from service;").setHandler(
                 done -> {
                     if(done.succeeded()) {
                         done
@@ -22,7 +24,7 @@ public class ServicesDao {
                                 .stream()
                                 .forEach(
                                     jsonArray -> jsonArray.stream().forEach(
-                                        url -> services.put((String) url, "UNKNOWN")
+                                        name -> services.put((String) name, "UNKNOWN")
                                     )
                                 );
                     } else {
@@ -33,8 +35,10 @@ public class ServicesDao {
         return services;
     }
 
-    public void addService(String url) {
-        connector.query("insert into service (url) values ('"+ url +"');").setHandler(
+    public void addService(Service service) {
+        String insertSql = "insert into service (name, url, creationdate) values (?, ?, ?);";
+        JsonArray params = new JsonArray().add(service.getName()).add(service.getUrl()).add(service.getCreationDate());
+        connector.query(insertSql, params).setHandler(
                 done -> {
                     if(!done.succeeded()) {
                         done.cause().printStackTrace();
@@ -43,8 +47,8 @@ public class ServicesDao {
         );
     }
 
-    public void removeService(String url) {
-        connector.query("delete from service where url = '"+ url +"';").setHandler(
+    public void removeService(String name) {
+        connector.query("delete from service where name = '"+ name +"';").setHandler(
                 done -> {
                     if(!done.succeeded()) {
                         done.cause().printStackTrace();
