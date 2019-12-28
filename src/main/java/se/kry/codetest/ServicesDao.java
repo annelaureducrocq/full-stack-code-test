@@ -34,7 +34,7 @@ public class ServicesDao {
     }
 
     public void addService(String url) {
-        connector.query("insert into service values ('"+ url +"');").setHandler(
+        connector.query("insert into service (url) values ('"+ url +"');").setHandler(
                 done -> {
                     if(!done.succeeded()) {
                         done.cause().printStackTrace();
