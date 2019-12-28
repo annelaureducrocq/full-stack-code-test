@@ -54,7 +54,7 @@ public class MainVerticle extends AbstractVerticle {
           .stream()
           .map(service ->
               new JsonObject()
-                  .put("name", service.getKey())
+                  .put("url", service.getKey())
                   .put("status", service.getValue()))
           .collect(Collectors.toList());
       req.response()
@@ -66,22 +66,22 @@ public class MainVerticle extends AbstractVerticle {
       Service service = new Service(jsonBody.getString("name"), jsonBody.getString("url"), Instant.now());
       if(jsonBody.getString("name") == null || jsonBody.getString("url") == null){
         req.response().setStatusCode(400).end("You should fill name & url attributes !");
-      } else if(services.containsKey(service.getName())) {
-        req.response().setStatusCode(400).end("Service name " + service.getName() + " already exists");
+      } else if(services.containsKey(service.getUrl())) {
+        req.response().setStatusCode(400).end("Service url " + service.getUrl() + " already exists");
       } else {
-        services.put(service.getName(), "UNKNOWN");
+        services.put(service.getUrl(), "UNKNOWN");
         servicesDao.addService(service);
         req.response()
                 .putHeader("content-type", "text/plain")
                 .end("OK");
       }
     });
-    router.delete("/service/:name").handler(routingContext -> {
-      String name = routingContext.pathParam("name");
+    router.delete("/service/:url").handler(routingContext -> {
+      String url = routingContext.pathParam("url");
       HttpServerResponse response = routingContext.response();
-      if (services.containsKey(name)) {
-        services.remove(name);
-        servicesDao.removeService(name);
+      if (services.containsKey(url)) {
+        services.remove(url);
+        servicesDao.removeService(url);
         response.setStatusCode(204).end();
       }
       response.setStatusCode(404).end();
